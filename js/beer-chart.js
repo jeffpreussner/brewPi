@@ -286,19 +286,17 @@ function formatForChartLegend(v) {
 }
 function showChartLegend(e, x, pts, row, g) {
     "use strict";
-    var time = profileTable.formatDate(new Date(x)).display;
-    $('.beer-chart-legend-time').text(time);
-    $('.beer-chart-legend-row.beerTemp .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('beerTemp'))));
-    $('.beer-chart-legend-row.beerSet .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('beerSet'))) );
-    $('.beer-chart-legend-row.fridgeTemp .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('fridgeTemp'))));
-    $('.beer-chart-legend-row.fridgeSet .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('fridgeSet'))) );
-    $('.beer-chart-legend-row.log1Temp .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('log1Temp'))) );
-    $('.beer-chart-legend-row.log2Temp .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('log2Temp'))) );
-    $('.beer-chart-legend-row.log3Temp .beer-chart-legend-value').text( formatForChartLegend(g.getValue(row, g.indexFromSetName('log3Temp'))) );
-    var state = getState(g, row);
-    if ( state !== undefined && !isNaN(state) ) {
-        $('.beer-chart-legend-row.state .beer-chart-legend-label').text(STATES[state].text);
-        $('.beer-chart-legend-row.state .state-indicator').css( 'background-color', STATES[state].color );
+    var time = dateFormatter.formatDate(new Date(x)).display;
+    $('#curr-beer-chart-legend .beer-chart-legend-time').text(time);
+    $('#curr-beer-chart-legend .beer-chart-legend-row.beerTemp .beer-chart-legend-value').text( formatForChartLegend(currentDataSet.getValue(row, 1)) );
+    $('#curr-beer-chart-legend .beer-chart-legend-row.beerSet .beer-chart-legend-value').text( formatForChartLegend(currentDataSet.getValue(row, 2)) );
+    $('#curr-beer-chart-legend .beer-chart-legend-row.fridgeTemp .beer-chart-legend-value').text( formatForChartLegend(currentDataSet.getValue(row, 3)) );
+    $('#curr-beer-chart-legend .beer-chart-legend-row.fridgeSet .beer-chart-legend-value').text( formatForChartLegend(currentDataSet.getValue(row, 4)) );
+    $('#curr-beer-chart-legend .beer-chart-legend-row.roomTemp .beer-chart-legend-value').text( formatForChartLegend(currentDataSet.getValue(row, 5)) );
+    var state = parseInt(currentDataSet.getValue(row, STATE_COLUMN));
+    if ( !isNaN(state) ) {
+        $('#curr-beer-chart-legend .beer-chart-legend-row.state .beer-chart-legend-label').text(STATES[state].text);
+        $('#curr-beer-chart-legend .beer-chart-legend-row.state .state-indicator').css( 'background-color', STATES[state].color );
     }
 }
 function hideChartLegend() {

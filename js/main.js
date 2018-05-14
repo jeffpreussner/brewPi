@@ -172,120 +172,6 @@ function startScript(){
 	$.get('start_script.php');
 }
 
-function refreshTemperatures(){
-	"use strict";
-    $.ajax({
-        type: "POST",
-        dataType:"json",
-        cache: false,
-        contentType:"application/x-www-form-urlencoded; charset=utf-8",
-        url: 'socketmessage.php',
-        data: {messageType: "getTemperatures", message: ""}
-        })
-        .done( function(temperatures){
-            $(".temperatures-container").empty();
-            const displayOrder = ['BeerSet', 'BeerTemp', 'FridgeSet', 'FridgeTemp', 'Log1Temp', 'Log2Temp', 'Log3Temp', 'State']
-            const stateNames = ["Idle", "Off", "Door Open", "Heating", "Cooling"];
-            const displayName = {
-                BeerSet: 'Beer Setting',
-                BeerTemp: 'Beer Temp',
-                FridgeSet: 'Fridge Setting',
-                FridgeTemp: 'Fridge Temp',
-                Log1Temp: 'Log 1 Temp',
-                Log2Temp: 'Log 2 Temp',
-                Log3Temp: 'Log 3 Temp',
-                State: 'State'
-            }
-            if(temperatures.Error !== undefined){
-                $(".temperatures-container").append("<div class='temperature-error'>Error: " + temperatures.Error +  "</div>");
-            }
-            for (var key of displayOrder) {
-                if (temperatures.hasOwnProperty(key)) {
-                    var value = temperatures[key];
-                    if(!isNaN(parseFloat(value))){ 
-                        var $temperatureName=$('<div />').text(displayName[key]);
-                        $temperatureName.addClass('temperature-name');
-                        //temperatureNameSpan.addClass(displayName[key]);
-                        var $temperatureValue=$('<div />')
-                        if(key === 'State'){
-                            $temperatureValue=$('<div />').text(stateNames[value]);
-                        } else{
-                            $temperatureValue.text(value.toFixed(2));
-                        }
-                        $temperatureValue.addClass('temperature-value');
-                        $temperatureValue.addClass('key');
-                        var $temperatureDiv = $("<div />");
-                        $temperatureDiv.append($temperatureName);
-                        $temperatureDiv.append($temperatureValue);
-                        $(".temperatures-container").append($temperatureDiv);
-                    }
-                }
-            }
-            
-            updateScriptStatus(true);
-        })
-        .fail(function() {
-            $(".temperatures-container").empty();            
-            updateScriptStatus(false);
-        })
-        .always(function() {
-            window.setTimeout(refreshTemperatures,5000);
-        }
-    );
-}
-
-function updateScriptStatus(running){
-	"use strict";
-    if(window.scriptStatus == running){
-        return;
-    }
-    window.scriptStatus = running;
-    var $scriptStatus = $(".script-status");
-    var $scriptStatusIcon = $scriptStatus.find("span.ui-icon");
-    var $scriptStatusButtonText = $scriptStatus.find("span.ui-button-text");
-    if(running){
-        $scriptStatusIcon.removeClass("ui-icon-alert").addClass("ui-icon-check");
-        $scriptStatus.removeClass("ui-state-error").addClass("ui-state-default");
-        $scriptStatusButtonText.text("Script running");
-        $scriptStatus.unbind();
-        $scriptStatus.bind({
-            click: function(){
-                stopScript();
-            },
-            mouseenter: function(){
-                $scriptStatusIcon.removeClass("ui-icon-check").addClass("ui-icon-stop");
-                $scriptStatus.removeClass("ui-state-default").addClass("ui-state-error");
-                $scriptStatusButtonText.text("Stop script");
-            },
-            mouseleave: function(){
-                $scriptStatusIcon.removeClass("ui-icon-stop").addClass("ui-icon-check");
-                $scriptStatus.removeClass("ui-state-error").addClass("ui-state-default");
-                $scriptStatusButtonText.text("Script running");
-            }
-        });
-    } else {
-        $scriptStatusIcon.removeClass("ui-icon-check").addClass("ui-icon-alert");
-        $scriptStatus.removeClass("ui-state-default").addClass("ui-state-error");
-        $scriptStatusButtonText.text("Script not running!");
-        $scriptStatus.unbind();
-        $scriptStatus.bind({
-            click: function(){
-                startScript();
-            },
-            mouseenter: function(){
-                $scriptStatusIcon.removeClass("ui-icon-alert").addClass("ui-icon-play");
-                $scriptStatus.removeClass("ui-state-error").addClass("ui-state-default");
-                $scriptStatusButtonText.text("Start script");
-            },
-            mouseleave: function(){
-                $scriptStatusIcon.removeClass("ui-icon-play").addClass("ui-icon-alert");
-                $scriptStatus.removeClass("ui-state-default").addClass("ui-state-error");
-                $scriptStatusButtonText.text("Script not running!");
-            }
-        });
-    }
-}
-
 function beerNameDialogInit(){
     "use strict";
     var $dialog = $("<div class='beer-name-dialog'></div>").dialog( {
@@ -445,14 +331,21 @@ $(document).ready(function(){
 	"use strict";
 	$(".script-status").button({	icons: {primary: "ui-icon-alert" } });
 	$(".script-status span.ui-button-text").text("Checking script..");
-    $("#beer-name").click(beerNameDialogInit);
 
-	loadControlPanel();
 	drawBeerChart(window.beerName, 'curr-beer-chart');
 
-	receiveControlConstants();
-	receiveControlSettings();
-	receiveControlVariables();
-	refreshTemperatures();
+    if (window.isAuthenticated) {
+       $("#beer-name").click(beerNameDialogInit);
+	   loadControlPanel();
+       receiveControlConstants();
+       receiveControlSettings();
+       receiveControlVariables();
+    } else {
+        $("button#login").button().unbind('click').click(function(){
+            if ($("#login-form").valid()) {
+               $("#login-form").submit();
+            }
+        });
+    }
 });
 
